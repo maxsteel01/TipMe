@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>TipMe – Tip QR Generator</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <!-- QR lib (3 kB) -->
+  <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
+
+  <style>
+    :root {
+      --accent: #ff6b6b;
+      --bg: #f9fafb;
+      --radius: 10px;
+    }
+    body {
+      margin: 0;
+      font-family: system-ui, sans-serif;
+      background: var(--bg);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+    }
+    .card {
+      background: #fff;
+      padding: 2rem;
+      border-radius: var(--radius);
+      box-shadow: 0 4px 18px rgba(0,0,0,.08);
+      text-align: center;
+      max-width: 300px;
+      width: 100%;
+    }
+    h1 {
+      font-size: 1.5rem;
+      margin: 0 0 1rem;
+      color: #333;
+    }
+    select, input {
+      width: 100%;
+      padding: .6rem .8rem;
+      margin-bottom: .8rem;
+      border: 1px solid #ddd;
+      border-radius: var(--radius);
+      font-size: 1rem;
+    }
+    button {
+      width: 100%;
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      padding: .75rem;
+      font-size: 1rem;
+      border-radius: var(--radius);
+      cursor: pointer;
+    }
+    button:active { opacity: .9; }
+    #qrcode { margin: 1rem 0; }
+    #pngLink {
+      display: none;
+      color: var(--accent);
+      margin-top: .5rem;
+      text-decoration: none;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="card">
+    <h1>TipMe</h1>
+
+    <select id="service">
+      <option value="venmo">Venmo</option>
+      <option value="cashapp">Cash App</option>
+      <option value="paypal">PayPal</option>
+    </select>
+
+    <input id="handle" type="text" placeholder="Your username / handle" autocomplete="off" />
+
+    <button onclick="generate()">Create QR</button>
+
+    <div id="qrcode"></div>
+    <a id="pngLink" download="tipme.png">Download PNG</a>
+  </div>
+
+  <script>
+    function generate() {
+      const service = document.getElementById('service').value;
+      const handle  = document.getElementById('handle').value.trim();
+      const qrDiv   = document.getElementById('qrcode');
+      const pngLink = document.getElementById('pngLink');
+
+      if (!handle) { alert('Enter your username'); return; }
+
+      // Build link
+      const links = {
+        venmo:   'https://venmo.com/u/',
+        cashapp: 'https://cash.app/$',
+        paypal:  'https://paypal.me/'
+      };
+      const url = links[service] + encodeURIComponent(handle);
+
+      // Clear old QR
+      qrDiv.innerHTML = '';
+      pngLink.style.display = 'none';
+
+      // Render new QR
+      QRCode.toCanvas(url, { width: 256, margin: 2, color: { dark: '#000', light: '#fff' } })
+        .then(canvas => {
+          qrDiv.appendChild(canvas);
+
+          // Convert canvas → blob → download link
+          canvas.toBlob(blob => {
+            pngLink.href = URL.createObjectURL(blob);
+            pngLink.style.display = 'inline-block';
+          });
+        });
+    }
+  </script>
+</body>
+</html>
